@@ -58,7 +58,7 @@ module DiscoursePrometheus
 
     def intercept?(env)
       if env["PATH_INFO"] == "/metrics"        
-        is_private = is_private_ip?(env)
+        is_private_ip = is_private_ip?(env)
         is_trusted_ip = is_trusted_ip?(env)
         is_admin = is_admin?(env)
         STDERR.puts "intercept? is_private_ip?(env): #{is_private_ip.to_s} | is_trusted_ip?(env): #{is_trusted_ip.to_s} | is_admin?(env): #{is_admin.to_s}"
