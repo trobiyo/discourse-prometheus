@@ -11,9 +11,12 @@ module DiscoursePrometheus
     end
 
     def call(env)
+      STDERR.puts "call(env)"
       if intercept?(env)
+        STDERR.puts "intercept?(env)"
         metrics(env)
       else
+        STDERR.puts "app.call(env)"
         @app.call(env)
       end
     end
@@ -25,6 +28,7 @@ module DiscoursePrometheus
     def is_private_ip?(env)
       request = Rack::Request.new(env)
       ip = IPAddr.new(request.ip) rescue nil
+      STDERR.puts "is_private_ip? ip: #{ip.to_s}"
       !!(ip && ip.to_s =~ PRIVATE_IP)
     end
 
@@ -38,6 +42,7 @@ module DiscoursePrometheus
         # failed to parse regex
         Discourse.warn_exception(e, message: "Error parsing prometheus trusted ip whitelist", env: env)
       end
+      STDERR.puts "is_trusted_ip? trusted_ip_regex: #{trusted_ip_regex} | ip: #{ip.to_s}"
       !!(trusted_ip_regex && ip && ip.to_s =~ trusted_ip_regex)
     end
 
@@ -52,7 +57,11 @@ module DiscoursePrometheus
     end
 
     def intercept?(env)
-      if env["PATH_INFO"] == "/metrics"
+      if env["PATH_INFO"] == "/metrics"        
+        is_private = is_private_ip?(env)
+        is_trusted_ip = is_trusted_ip?(env)
+        is_admin = is_admin?(env)
+        STDERR.puts "intercept? is_private_ip?(env): #{is_private_ip.to_s} | is_trusted_ip?(env): #{is_trusted_ip.to_s} | is_admin?(env): #{is_admin.to_s}"
         return is_private_ip?(env) || is_trusted_ip?(env) || is_admin?(env)
       end
       false
